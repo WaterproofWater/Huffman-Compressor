@@ -4,10 +4,10 @@ public class HuffmanTree {
     /**
      * Public Attributes:
      * ===========
-     * symbol: symbol located in this Huffman tree node, if any
+     * symbol: symbol stored in this Huffman tree node, if any
      * number: the number of this Huffman tree node
-     * left: left subtree of this Huffman tree
-     * right: right subtree of this Huffman tree
+     * left: the left subtree of this Huffman tree node
+     * right: the right subtree of this Huffman tree node
      */
     private Integer symbol;
     private Integer number;
@@ -50,7 +50,7 @@ public class HuffmanTree {
         return false; // arbitrarily say that one node is never less than another
     }
 
-    // Return constructor-style string representation of this HuffmanTree
+    // Return a string representation of this HuffmanTree
     @Override
     public String toString() {
         return "HuffmanTree(" + symbol + ", " + left + ", " + right + ")";
@@ -62,22 +62,27 @@ public class HuffmanTree {
     }
 
     // Return the number of nodes required to represent this Huffman tree
-    // Precondition: this Huffman tree is already numbered.
+    // Precondition: This Huffman tree is already numbered.
     public byte[] numNodesToBytes() {
         return new byte[]{(byte) (number + 1)};
     }
 
 
 
-    // Test Space
+    // Test Space (REMOVE IN FINAL VERSION)
     public static void main(String[] args) {
-        // Example usage of the HuffmanTree class
-
-        // Create a leaf node with symbol 4
         HuffmanTree a = new HuffmanTree(4);
+        HuffmanTree b = new HuffmanTree(4);
 
-        // Create another leaf node with symbol 4 and compare with a
-        HuffmanTree b = new HuffmanTree(6);
         System.out.println(a.equals(b)); // Should print: true
+
+        b = new HuffmanTree(5);
+        System.out.println(a.equals(b)); // Should print: false
+
+        System.out.println(a.isLeaf()); // Should print: true
+        System.out.println(a.toString()); // Should print: HuffmanTree(4, null, null)
+
+        HuffmanTree c = new HuffmanTree(6, a, b);
+        System.out.println(c.toString());// Should print: HuffmanTree(6, HuffmanTree(4, null, null), HuffmanTree(5, null, null))
     }
 }
