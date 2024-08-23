@@ -127,12 +127,39 @@ public class Compressor {
         return String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
     }
 
-    // Write compressed bytes to a file
-    public static void writeCompressedToFile(String fileName, byte[] compressedData) {
-        try (FileOutputStream fos = new FileOutputStream(fileName)) {
-            fos.write(compressedData);
+    // Serialize the Huffman Tree to a byte array
+    public static byte[] serializeHuffmanTree(HuffmanTree tree) {
+        StringBuilder serializedTree = new StringBuilder();
+        serializeHelper(tree, serializedTree);
+        
+        return serializedTree.toString().getBytes();
+    }
+
+    // Helper function for tree serialization (preorder traversal)
+    private static void serializeHelper(HuffmanTree tree, StringBuilder serializedTree) {
+        if (tree == null) {
+            serializedTree.append("0");  
+            return;
         }
 
+        serializedTree.append("1");  
+        if (tree.isLeaf()) {
+            serializedTree.append((char) tree.symbol.intValue());  
+        }
+
+        serializeHelper(tree.left, serializedTree);
+        serializeHelper(tree.right, serializedTree);
+    }
+
+    // Write the Huffman tree and compressed bytes to a file
+    public static void writeCompressedToFile(String fileName, HuffmanTree tree, byte[] compressedData) {
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+            byte[] serializedTree = serializeHuffmanTree(tree);
+            fos.write(serializedTree);
+            fos.write("\n".getBytes());
+            fos.write(compressedData);
+        } 
+        
         catch (IOException e) {
             e.printStackTrace();
         }
@@ -146,7 +173,7 @@ public class Compressor {
             byte[] fileBytes = Files.readAllBytes(filePath);
             return fileBytes;
         }
-        
+
         catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -154,15 +181,11 @@ public class Compressor {
     }
 
     public static void main(String[] args) {
-        //Scanner scanner = new Scanner(System.in);
-
-        //System.out.print("Enter the name of the file to compress: ");
-        String inputFileName = "example.txt";
-        //scanner.nextLine();
+        String inputFileName = "Homer-Iliad.txt";
 
         byte[] fileBytes = fileToByte(inputFileName);
         if (fileBytes == null) {
-            System.out.println("Error: File do not exists or failed to be read.");
+            System.out.println("Error: File does not exist or failed to be read.");
             return;
         }
 
@@ -174,7 +197,7 @@ public class Compressor {
         byte[] compressedData = compressBytes(fileBytes, huffmanCodes);
         String outputFileName = inputFileName + "_compressed.huff";
 
-        writeCompressedToFile(outputFileName, compressedData);
+        writeCompressedToFile(outputFileName, finalTree, compressedData);
         System.out.println("Compression completed. Compressed file saved as: " + outputFileName);
     }
 }
