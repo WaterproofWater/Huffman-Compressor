@@ -9,10 +9,10 @@ public class HuffmanTree {
      * left: the left subtree of this Huffman tree node
      * right: the right subtree of this Huffman tree node
      */
-    private Integer symbol;
-    private Integer number;
-    private HuffmanTree left;
-    private HuffmanTree right;
+    public Integer symbol;
+    public Integer number;
+    public HuffmanTree left;
+    public HuffmanTree right;
 
     // Constructor
     public HuffmanTree(Integer symbol, HuffmanTree left, HuffmanTree right) {
@@ -43,11 +43,6 @@ public class HuffmanTree {
                 && ((left == null && otherTree.left == null) || (left != null && left.equals(otherTree.left))) 
                 && ((right == null && otherTree.right == null) || (right != null && right.equals(otherTree.right)));
 
-    }
-
-    // HuffmanTree nodes are never considered less than other nodes
-    public boolean lessThan(HuffmanTree other) {
-        return false; // arbitrarily say that one node is never less than another
     }
 
     // Return a string representation of this HuffmanTree
