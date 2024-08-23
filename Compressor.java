@@ -97,8 +97,36 @@ public class Compressor {
         return codeMap;
     }
 
+    // Compress the bytes in the original file using the codes given by the final Huffman tree
+    public static byte[] compressBytes(byte[] text, Map<Integer, String> codes) {
+        StringBuilder newBits = new StringBuilder();
+        for (byte b : text) {
+            newBits.append(codes.get((int) b & 0xFF)); // Retrieve and append the corresponding Huffman code
+        }
 
+        // Padding the bit string to be a multiple of 8 bits
+        int paddingLength = 8 - (newBits.length() % 8);
+        if (paddingLength != 8) {
+            newBits.append("0".repeat(paddingLength));
+        }
 
+        int numBytes = newBits.length() / 8;
+        byte[] result = new byte[numBytes];
+
+        for (int i = 0; i < numBytes; i++) {
+            String byteString = newBits.substring(i * 8, (i + 1) * 8);
+            result[i] = (byte) Integer.parseInt(byteString, 2);
+        }
+
+        return result;
+    }
+
+    // Helper function to display bytes in binary form for debugging
+    public static String byteToBits(byte b) {
+        return String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
+    }
+
+    
 
 
 
