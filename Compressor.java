@@ -1,3 +1,4 @@
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -101,7 +102,7 @@ public class Compressor {
     public static byte[] compressBytes(byte[] text, Map<Integer, String> codes) {
         StringBuilder newBits = new StringBuilder();
         for (byte b : text) {
-            newBits.append(codes.get((int) b & 0xFF)); // Retrieve and append the corresponding Huffman code
+            newBits.append(codes.get((int) b & 0xFF));
         }
 
         // Padding the bit string to be a multiple of 8 bits
@@ -126,33 +127,26 @@ public class Compressor {
         return String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
     }
 
-    
+    // Write compressed bytes to a file
+    public static void writeCompressedToFile(String fileName, byte[] compressedData) {
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+            fos.write(compressedData);
+        }
 
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
+    // Convert all symbols in a file to its byte form
     public static byte[] fileToByte(String fileName) {
         Path filePath = Paths.get(fileName);
 
         try {
             byte[] fileBytes = Files.readAllBytes(filePath);
-
-            // for (byte b : fileBytes) {
-            //     System.out.println("Byte value: " + b);
-            // }
-
             return fileBytes;
         }
+        
         catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -160,24 +154,28 @@ public class Compressor {
     }
 
     public static void main(String[] args) {
-       byte[] fileInByte = fileToByte("example.txt");
+        //Scanner scanner = new Scanner(System.in);
 
-       if (fileInByte == null || fileInByte.length == 0) {
-           System.out.println("File is empty or there was an error reading the file.");
-           return;
-       } 
-       
-        HashMap<Integer, Integer> b = buildFrequencyMap(fileInByte);
-        System.out.println(b);
-        ArrayList<HuffmanTree> testTreeList = buildHuffmanTreeList(b);
-        System.out.println(testTreeList);
+        //System.out.print("Enter the name of the file to compress: ");
+        String inputFileName = "example.txt";
+        //scanner.nextLine();
 
-        HuffmanTree finalTree = HuffmanTreeMerger(testTreeList);
-        System.out.println(finalTree);
-       
-        HashMap<Integer, String> symbolCode = HuffmanEncoder(finalTree);
-        System.out.println(symbolCode);
+        byte[] fileBytes = fileToByte(inputFileName);
+        if (fileBytes == null) {
+            System.out.println("Error: File do not exists or failed to be read.");
+            return;
+        }
 
+        // Compression Logic
+        HashMap<Integer, Integer> frequencyMap = buildFrequencyMap(fileBytes);
+        ArrayList<HuffmanTree> huffmanTreeList = buildHuffmanTreeList(frequencyMap);
+        HuffmanTree finalTree = HuffmanTreeMerger(huffmanTreeList);
+        HashMap<Integer, String> huffmanCodes = HuffmanEncoder(finalTree);
+        byte[] compressedData = compressBytes(fileBytes, huffmanCodes);
+        String outputFileName = inputFileName + "_compressed.huff";
+
+        writeCompressedToFile(outputFileName, compressedData);
+        System.out.println("Compression completed. Compressed file saved as: " + outputFileName);
     }
 }
 
