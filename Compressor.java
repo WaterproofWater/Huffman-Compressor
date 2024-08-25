@@ -142,13 +142,14 @@ public class Compressor {
     }
 
     // Write the Huffman tree and compressed bytes to a file
-    public static void writeCompressedToFile(String fileName, HuffmanTree tree, byte[] compressedData) {
+    public static void writeCompressedToFile(String fileName, HuffmanTree tree, byte[] compressedData, int originalFileSize) {
         StringBuilder serializedTree = new StringBuilder();
         serializeHuffmanTree(tree, serializedTree);
         
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
             fos.write(intToBytes(serializedTree.length()));
             fos.write(serializedTree.toString().getBytes());
+            fos.write(intToBytes(originalFileSize));
             fos.write(compressedData);
         } 
         
@@ -191,6 +192,7 @@ public class Compressor {
         //scanner.nextLine();
     
         byte[] fileBytes = fileToByte(inputFileName);
+        int fileSize = fileBytes.length;
         if (fileBytes == null) {
             System.out.println("Failed to read the file.");
             return;
@@ -213,7 +215,7 @@ public class Compressor {
     
         // Write the Huffman tree and compressed data to file
         String outputFileName = inputFileName + "_compressed.huff";
-        writeCompressedToFile(outputFileName, finalTree, compressedData);
+        writeCompressedToFile(outputFileName, finalTree, compressedData, fileSize);
     
         System.out.println("Compression completed. Compressed file saved as: " + outputFileName);
     }
