@@ -122,11 +122,6 @@ public class Compressor {
         return result;
     }
 
-    // Helper function to display bytes in binary form for debugging
-    public static String byteToBits(byte b) {
-        return String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
-    }
-
     // Convert the final Huffman tree into a form that can be saved to the compressed file
     public static void serializeHuffmanTree(HuffmanTree tree, StringBuilder sb) {
         if (tree.isLeaf()) {
@@ -184,12 +179,10 @@ public class Compressor {
     }
 
     public static void main(String[] args) {
-        // Scanner for user input
-        // Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
     
-        // System.out.print("Enter the name of the file to compress: ");
-        String inputFileName = "example.txt";
-        //scanner.nextLine();
+        System.out.print("Enter the name of the file to compress: ");
+        String inputFileName = scanner.nextLine();
     
         byte[] fileBytes = fileToByte(inputFileName);
         int fileSize = fileBytes.length;
@@ -198,22 +191,12 @@ public class Compressor {
             return;
         }
     
-        // Build the frequency map
         HashMap<Integer, Integer> frequencyMap = buildFrequencyMap(fileBytes);
-    
-        // Build Huffman tree list
         ArrayList<HuffmanTree> huffmanTreeList = buildHuffmanTreeList(frequencyMap);
-    
-        // Merge into final Huffman tree
         HuffmanTree finalTree = HuffmanTreeMerger(huffmanTreeList);
-    
-        // Encode the Huffman tree
         HashMap<Integer, String> huffmanCodes = HuffmanEncoder(finalTree);
-    
-        // Compress the data
+
         byte[] compressedData = compressBytes(fileBytes, huffmanCodes);
-    
-        // Write the Huffman tree and compressed data to file
         String outputFileName = inputFileName + "_compressed.huff";
         writeCompressedToFile(outputFileName, finalTree, compressedData, fileSize);
     
