@@ -130,7 +130,8 @@ public class Compressor {
     // Convert the final Huffman tree into a form that can be saved to the compressed file
     public static void serializeHuffmanTree(HuffmanTree tree, StringBuilder sb) {
         if (tree.isLeaf()) {
-            sb.append('L').append((char)tree.symbol.intValue());
+            sb.append('L');
+            sb.append(tree.symbol);
         } 
         
         else {
@@ -146,15 +147,12 @@ public class Compressor {
         serializeHuffmanTree(tree, serializedTree);
         
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
-            // Write the length of the serialized tree first
             fos.write(intToBytes(serializedTree.length()));
-    
-            // Write the serialized tree itself
             fos.write(serializedTree.toString().getBytes());
-    
-            // Write the compressed data
             fos.write(compressedData);
-        } catch (IOException e) {
+        } 
+        
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -189,7 +187,7 @@ public class Compressor {
         // Scanner scanner = new Scanner(System.in);
     
         // System.out.print("Enter the name of the file to compress: ");
-        String inputFileName = "Homer-Iliad.txt";
+        String inputFileName = "example.txt";
         //scanner.nextLine();
     
         byte[] fileBytes = fileToByte(inputFileName);
