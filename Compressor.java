@@ -127,42 +127,46 @@ public class Compressor {
         return String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
     }
 
-    // Serialize the Huffman Tree to a byte array
-    public static byte[] serializeHuffmanTree(HuffmanTree tree) {
-        StringBuilder serializedTree = new StringBuilder();
-        serializeHelper(tree, serializedTree);
-        
-        return serializedTree.toString().getBytes();
-    }
-
-    // Helper function for tree serialization (preorder traversal)
-    private static void serializeHelper(HuffmanTree tree, StringBuilder serializedTree) {
-        if (tree == null) {
-            serializedTree.append("0");  
-            return;
-        }
-
-        serializedTree.append("1");  
+    // Convert the final Huffman tree into a form that can be saved to the compressed file
+    public static void serializeHuffmanTree(HuffmanTree tree, StringBuilder sb) {
         if (tree.isLeaf()) {
-            serializedTree.append((char) tree.symbol.intValue());  
+            sb.append('L').append((char)tree.symbol.intValue());
+        } 
+        
+        else {
+            sb.append('I');
+            serializeHuffmanTree(tree.left, sb);
+            serializeHuffmanTree(tree.right, sb);
         }
-
-        serializeHelper(tree.left, serializedTree);
-        serializeHelper(tree.right, serializedTree);
     }
 
     // Write the Huffman tree and compressed bytes to a file
     public static void writeCompressedToFile(String fileName, HuffmanTree tree, byte[] compressedData) {
-        try (FileOutputStream fos = new FileOutputStream(fileName)) {
-            byte[] serializedTree = serializeHuffmanTree(tree);
-            fos.write(serializedTree);
-            fos.write("\n".getBytes());
-            fos.write(compressedData);
-        } 
+        StringBuilder serializedTree = new StringBuilder();
+        serializeHuffmanTree(tree, serializedTree);
         
-        catch (IOException e) {
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+            // Write the length of the serialized tree first
+            fos.write(intToBytes(serializedTree.length()));
+    
+            // Write the serialized tree itself
+            fos.write(serializedTree.toString().getBytes());
+    
+            // Write the compressed data
+            fos.write(compressedData);
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    // Convert an integer to a byte array
+    public static byte[] intToBytes(int value) {
+        return new byte[] {
+            (byte)(value >> 24),
+            (byte)(value >> 16),
+            (byte)(value >> 8),
+            (byte)value
+        };
     }
 
     // Convert all symbols in a file to its byte form
@@ -181,23 +185,38 @@ public class Compressor {
     }
 
     public static void main(String[] args) {
+        // Scanner for user input
+        // Scanner scanner = new Scanner(System.in);
+    
+        // System.out.print("Enter the name of the file to compress: ");
         String inputFileName = "Homer-Iliad.txt";
-
+        //scanner.nextLine();
+    
         byte[] fileBytes = fileToByte(inputFileName);
         if (fileBytes == null) {
-            System.out.println("Error: File does not exist or failed to be read.");
+            System.out.println("Failed to read the file.");
             return;
         }
-
-        // Compression Logic
+    
+        // Build the frequency map
         HashMap<Integer, Integer> frequencyMap = buildFrequencyMap(fileBytes);
+    
+        // Build Huffman tree list
         ArrayList<HuffmanTree> huffmanTreeList = buildHuffmanTreeList(frequencyMap);
+    
+        // Merge into final Huffman tree
         HuffmanTree finalTree = HuffmanTreeMerger(huffmanTreeList);
+    
+        // Encode the Huffman tree
         HashMap<Integer, String> huffmanCodes = HuffmanEncoder(finalTree);
+    
+        // Compress the data
         byte[] compressedData = compressBytes(fileBytes, huffmanCodes);
+    
+        // Write the Huffman tree and compressed data to file
         String outputFileName = inputFileName + "_compressed.huff";
-
         writeCompressedToFile(outputFileName, finalTree, compressedData);
+    
         System.out.println("Compression completed. Compressed file saved as: " + outputFileName);
     }
 }
