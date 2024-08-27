@@ -9,7 +9,7 @@ public class Decompressor {
     private static int position = 0;
 
     // Decompress the file using the deserialized Huffman tree
-    public static void decompress(String inputFileName, HuffmanTree deserializedRoot, int serializedTreeLength) {
+    public static String decompress(String inputFileName, HuffmanTree deserializedRoot, int serializedTreeLength) {
         String originalFileName = inputFileName.replace("_compressed.huff", "");
         String originalExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
 
@@ -23,11 +23,9 @@ public class Decompressor {
             fis.skip(serializedTreeLength + 4);
 
             int contentLength = dis.readInt();
-            System.out.println("Original content length: " + contentLength);
 
             byte[] compressedData = dis.readAllBytes();
             String bitString = byteArrayToBitString(compressedData);
-            System.out.println("Bit string: " + bitString);
 
             HuffmanTree currentNode = deserializedRoot;
             int decompressedBytes = 0;
@@ -52,6 +50,8 @@ public class Decompressor {
         catch (IOException e) {
             e.printStackTrace();
         }
+
+        return outputFileName;
     }
 
     // Convert a byte array to a bit string
@@ -93,7 +93,7 @@ public class Decompressor {
             HuffmanTree left = deserializeHuffmanTree(serializedTree);
             HuffmanTree right = deserializeHuffmanTree(serializedTree);
 
-            int size = 1; 
+            int size = 1;
             if (left != null) {
                 size += left.size;
             }
@@ -137,10 +137,12 @@ public class Decompressor {
             String serializedTree = new String(treeBytes);
             HuffmanTree decodedTree = deserializeHuffmanTree(serializedTree);
 
-            decompress(fileName, decodedTree, serializedTree.length());
+            String outputFileName = decompress(fileName, decodedTree, serializedTree.length());
 
             dis.close();
             targetFile.close();
+
+            System.out.println("Decompression completed. Decompressed file saved as: " + outputFileName);
         }
 
         catch (IOException e) {

@@ -145,7 +145,7 @@ public class Compressor {
             fos.write(serializedTree.toString().getBytes());
             fos.write(intToByteArray(originalFileSize));
             fos.write(compressedData);
-            
+
             fos.close();
         }
 
@@ -199,6 +199,7 @@ public class Compressor {
 
         byte[] compressedData = compressBytes(fileBytes, huffmanCodes);
         String outputFileName = inputFileName + "_compressed.huff";
+        
         writeCompressedToFile(outputFileName, finalTree, compressedData, fileSize);
 
         System.out.println("Compression completed. Compressed file saved as: " + outputFileName);
