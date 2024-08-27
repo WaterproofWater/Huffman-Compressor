@@ -2,6 +2,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Decompressor {
 
@@ -9,11 +10,9 @@ public class Decompressor {
 
     // Decompress the file using the deserialized Huffman tree
     public static void decompress(String inputFileName, HuffmanTree deserializedRoot, int serializedTreeLength) {
-        // Extract the original file name and extension
         String originalFileName = inputFileName.replace("_compressed.huff", "");
         String originalExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
 
-        // Create the output file name with the original extension
         String outputFileName = originalFileName + "_decompressed" + originalExtension;
 
         try {
@@ -31,7 +30,7 @@ public class Decompressor {
             System.out.println("Bit string: " + bitString);
 
             HuffmanTree currentNode = deserializedRoot;
-            int decompressedBytes = 0; 
+            int decompressedBytes = 0;
 
             for (int i = 0; (i < bitString.length()) && (decompressedBytes < contentLength); i++) {
                 char bit = bitString.charAt(i);
@@ -39,16 +38,17 @@ public class Decompressor {
 
                 if (currentNode.isLeaf()) {
                     fos.write(currentNode.symbol);
-                    currentNode = deserializedRoot; 
+                    currentNode = deserializedRoot;
                     decompressedBytes++;
                 }
             }
 
+            dis.close();
             fos.close();
             fis.close();
 
-        } 
-        
+        }
+
         catch (IOException e) {
             e.printStackTrace();
         }
@@ -65,7 +65,7 @@ public class Decompressor {
 
         return bitString.toString();
     }
-    
+
 
     // Deserialize the Huffman tree from the serialized string
     public static HuffmanTree deserializeHuffmanTree(String serializedTree) {
@@ -79,59 +79,70 @@ public class Decompressor {
         if (nodeType == 'L') { // Leaf node: extract the symbol
             StringBuilder symbolBuilder = new StringBuilder();
 
-            while (position < serializedTree.length() && 
-                  (Character.isDigit(serializedTree.charAt(position)))) {
+            while ((position < serializedTree.length()) && (Character.isDigit(serializedTree.charAt(position)))) {
                 symbolBuilder.append(serializedTree.charAt(position));
                 position++;
             }
 
             int symbol = Integer.parseInt(symbolBuilder.toString());
+
             return new HuffmanTree(symbol, 1);
-        } 
-        
+        }
+
         else if (nodeType == 'I') { // Internal node: recursively construct the left and right children
             HuffmanTree left = deserializeHuffmanTree(serializedTree);
             HuffmanTree right = deserializeHuffmanTree(serializedTree);
 
-            int size = 1 + (left != null ? left.size : 0) + (right != null ? right.size : 0); // Size of the internal node
+            int size = 1; 
+            if (left != null) {
+                size += left.size;
+            }
+
+            if (right != null) {
+                size += right.size;
+            }
+
             return new HuffmanTree(null, left, right, size);
         }
 
         throw new IllegalArgumentException("Invalid serialized tree format at position: " + position);
     }
 
-    // Convert a byte array to an int
+    // Convert a byte array to an int (credit: https://www.baeldung.com/java-byte-array-to-number#:~:text=intBitsToFloat()%20method%3A,intBitsToFloat(intValue)%3B)
     public static int bytesToInt(byte[] bytes) {
-        return ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
+        int value = 0;
+
+        for (byte b : bytes) {
+            value = (value << 8) + (b & 0xFF);
+        }
+
+        return value;
     }
 
     // Main method for testing deserialization
     public static void main(String[] args) {
-        // Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
 
-        // System.out.print("Enter the name of the compressed file to decompress: ");
-        String fileName = "example.txt_compressed.huff";
-        //scanner.nextLine();
+        System.out.print("Enter the name of the file to decompress: ");
+        String fileName = scanner.nextLine();
 
         try {
-            DataInputStream dis = new DataInputStream(new FileInputStream(fileName));
+            FileInputStream targetFile =  new FileInputStream(fileName);
+            DataInputStream dis = new DataInputStream(targetFile);
             int treeLength = dis.readInt();
-            //System.out.println("Length of serialized Huffman tree: " + treeLength);
 
             byte[] treeBytes = new byte[treeLength];
             dis.readFully(treeBytes);
 
             String serializedTree = new String(treeBytes);
-            //System.out.println("Serialized Huffman tree: " + serializedTree);
+            HuffmanTree decodedTree = deserializeHuffmanTree(serializedTree);
 
-            HuffmanTree test = deserializeHuffmanTree(serializedTree);
-            System.out.println(test);
+            decompress(fileName, decodedTree, serializedTree.length());
 
-            decompress(fileName, test, serializedTree.length());
+            dis.close();
+            targetFile.close();
+        }
 
-
-        } 
-        
         catch (IOException e) {
             e.printStackTrace();
         }
