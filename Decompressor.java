@@ -9,36 +9,47 @@ public class Decompressor {
 
     // Decompress the file using the deserialized Huffman tree
     public static void decompress(String inputFileName, HuffmanTree deserializedRoot, int serializedTreeLength) {
-        // Create the output file name by replacing the extension with .txt
-        String outputFileName = inputFileName + ".txt";
+        // Extract the original file name and extension
+        String originalFileName = inputFileName.replace("_compressed.huff", "");
+        String originalExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+
+        // Create the output file name with the original extension
+        String outputFileName = originalFileName + "_decompressed" + originalExtension;
 
         try {
             FileInputStream fis = new FileInputStream(inputFileName);
+            DataInputStream dis = new DataInputStream(fis);
             FileOutputStream fos = new FileOutputStream(outputFileName);
 
             fis.skip(serializedTreeLength + 4);
 
-            // Read the compressed data
-            byte[] compressedData = fis.readAllBytes();
-            String bitString = byteArrayToBitString(compressedData);
-            System.out.println(bitString);
-            HuffmanTree currentNode = deserializedRoot;
+            int contentLength = dis.readInt();
+            System.out.println("Original content length: " + contentLength);
 
-            // Process each byte in the compressed data
-            for (char bit : bitString.toCharArray()) {
-                if (bit == '1') {
-                    currentNode = currentNode.right; // Traverse right for bit 1
-                } else {
-                    currentNode = currentNode.left; // Traverse left for bit 0
-                }
+            byte[] compressedData = dis.readAllBytes();
+            String bitString = byteArrayToBitString(compressedData);
+            System.out.println("Bit string: " + bitString);
+
+            HuffmanTree currentNode = deserializedRoot;
+            int decompressedBytes = 0; 
+
+            for (int i = 0; (i < bitString.length()) && (decompressedBytes < contentLength); i++) {
+                char bit = bitString.charAt(i);
+                currentNode = (bit == '1') ? currentNode.right : currentNode.left;
 
                 if (currentNode.isLeaf()) {
-                    // We've reached a leaf node, output the symbol
                     fos.write(currentNode.symbol);
-                    currentNode = deserializedRoot; // Return to the root of the tree for the next symbol
+                    currentNode = deserializedRoot; 
+                    decompressedBytes++;
                 }
             }
-        } catch (IOException e) {
+
+            fos.close();
+            fis.close();
+
+        } 
+        
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -46,14 +57,14 @@ public class Decompressor {
     // Convert a byte array to a bit string
     private static String byteArrayToBitString(byte[] byteArray) {
         StringBuilder bitString = new StringBuilder();
+
         for (byte b : byteArray) {
-            // Convert each byte to its binary representation and pad with leading zeros if necessary
             String binaryString = String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
             bitString.append(binaryString);
         }
+
         return bitString.toString();
     }
-
     
 
     // Deserialize the Huffman tree from the serialized string
@@ -102,7 +113,8 @@ public class Decompressor {
         String fileName = "example.txt_compressed.huff";
         //scanner.nextLine();
 
-        try (DataInputStream dis = new DataInputStream(new FileInputStream(fileName))) {
+        try {
+            DataInputStream dis = new DataInputStream(new FileInputStream(fileName));
             int treeLength = dis.readInt();
             //System.out.println("Length of serialized Huffman tree: " + treeLength);
 
