@@ -14,7 +14,6 @@ public class Compressor {
 
         for (byte b : text) {
             int key = Byte.toUnsignedInt(b);
-            // System.out.println(key);
             freqMap.put(key, freqMap.getOrDefault(key, 0) + 1);
         }
 
@@ -29,17 +28,16 @@ public class Compressor {
         for (Map.Entry<Integer, Integer> entry : freqDict.entrySet()) {
             Integer symbol = entry.getKey();
             Integer freq = entry.getValue();
+
             HuffmanTree treeItem = new HuffmanTree(symbol, freq);
             huffmanTreeList.add(treeItem);
         }
 
         return huffmanTreeList;
-
     }
 
     // Merge the Huffman trees into a final form
     public static HuffmanTree HuffmanTreeMerger(ArrayList<HuffmanTree> treeList) {
-
         while (treeList.size() != 1) {
             HuffmanTree smallest = null;
             HuffmanTree secondSmallest = null;
@@ -141,11 +139,14 @@ public class Compressor {
         StringBuilder serializedTree = new StringBuilder();
         serializeHuffmanTree(tree, serializedTree);
 
-        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+        try {
+            FileOutputStream fos = new FileOutputStream(fileName);
             fos.write(intToByteArray(serializedTree.length()));
             fos.write(serializedTree.toString().getBytes());
             fos.write(intToByteArray(originalFileSize));
             fos.write(compressedData);
+            
+            fos.close();
         }
 
         catch (IOException e) {
