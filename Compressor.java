@@ -13,7 +13,7 @@ public class Compressor {
         HashMap<Integer, Integer> freqMap = new HashMap<>();
 
         for (byte b : text) {
-            int key = Byte.toUnsignedInt(b); 
+            int key = Byte.toUnsignedInt(b);
             // System.out.println(key);
             freqMap.put(key, freqMap.getOrDefault(key, 0) + 1);
         }
@@ -25,7 +25,7 @@ public class Compressor {
     public static ArrayList<HuffmanTree> buildHuffmanTreeList(HashMap<Integer, Integer> freqDict) {
 
         ArrayList<HuffmanTree> huffmanTreeList = new ArrayList<>();
-        
+
         for (Map.Entry<Integer, Integer> entry : freqDict.entrySet()) {
             Integer symbol = entry.getKey();
             Integer freq = entry.getValue();
@@ -48,7 +48,7 @@ public class Compressor {
                 if (smallest == null || tree.size < smallest.size) {
                     secondSmallest = smallest;
                     smallest = tree;
-                } 
+                }
 
                 else if (secondSmallest == null || tree.size < secondSmallest.size) {
                     secondSmallest = tree;
@@ -76,7 +76,7 @@ public class Compressor {
                 codeMap.put(entry.getKey(), "0" + entry.getValue());
             }
 
-        } 
+        }
 
         else if (tree.left != null && tree.left.isLeaf()) {
             codeMap.put(tree.left.symbol, "0");
@@ -89,8 +89,8 @@ public class Compressor {
                 codeMap.put(entry.getKey(), "1" + entry.getValue());
             }
 
-        } 
-        
+        }
+
         else if (tree.right != null && tree.right.isLeaf()) {
             codeMap.put(tree.right.symbol, "1");
         }
@@ -127,8 +127,8 @@ public class Compressor {
         if (tree.isLeaf()) {
             sb.append('L');
             sb.append(tree.symbol);
-        } 
-        
+        }
+
         else {
             sb.append('I');
             serializeHuffmanTree(tree.left, sb);
@@ -140,26 +140,26 @@ public class Compressor {
     public static void writeCompressedToFile(String fileName, HuffmanTree tree, byte[] compressedData, int originalFileSize) {
         StringBuilder serializedTree = new StringBuilder();
         serializeHuffmanTree(tree, serializedTree);
-        
+
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
-            fos.write(intToBytes(serializedTree.length()));
+            fos.write(intToByteArray(serializedTree.length()));
             fos.write(serializedTree.toString().getBytes());
-            fos.write(intToBytes(originalFileSize));
+            fos.write(intToByteArray(originalFileSize));
             fos.write(compressedData);
-        } 
-        
+        }
+
         catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
-    // Convert an integer to a byte array
-    public static byte[] intToBytes(int value) {
+
+    // Convert an integer to a byte array (credit: https://stackoverflow.com/questions/2183240/java-integer-to-byte-array)
+    public static byte[] intToByteArray(int value) {
         return new byte[] {
-            (byte)(value >> 24),
-            (byte)(value >> 16),
-            (byte)(value >> 8),
-            (byte)value
+                (byte)(value >> 24),
+                (byte)(value >> 16),
+                (byte)(value >> 8),
+                (byte)value
         };
     }
 
@@ -180,17 +180,17 @@ public class Compressor {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-    
+
         System.out.print("Enter the name of the file to compress: ");
         String inputFileName = scanner.nextLine();
-    
+
         byte[] fileBytes = fileToByte(inputFileName);
         int fileSize = fileBytes.length;
         if (fileBytes == null) {
             System.out.println("Failed to read the file.");
             return;
         }
-    
+
         HashMap<Integer, Integer> frequencyMap = buildFrequencyMap(fileBytes);
         ArrayList<HuffmanTree> huffmanTreeList = buildHuffmanTreeList(frequencyMap);
         HuffmanTree finalTree = HuffmanTreeMerger(huffmanTreeList);
@@ -199,7 +199,7 @@ public class Compressor {
         byte[] compressedData = compressBytes(fileBytes, huffmanCodes);
         String outputFileName = inputFileName + "_compressed.huff";
         writeCompressedToFile(outputFileName, finalTree, compressedData, fileSize);
-    
+
         System.out.println("Compression completed. Compressed file saved as: " + outputFileName);
     }
 }
