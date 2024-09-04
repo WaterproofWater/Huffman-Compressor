@@ -1,6 +1,6 @@
-# Huffman Encoder/Decoder
+# Huffman Compressor/Decompressor
 ## 	<sub> Purpose: </sub> 
-  A small project to compress my previous class materials as they are eating up a good chunk of my storage drive and to be still able to decompress them losslessly later on.
+  A compression and decompression program that utilizes Java to compress my previous class materials as they are eating up a good chunk of my storage drive and to be still able to decompress them losslessly later on.
 
 ## 	<sub> Usage:	</sub>
   1. Download the source files in a folder.
